@@ -1,6 +1,5 @@
 import re
 
-
 def get_field(block: str, label: str) -> str:
     ''' extracts a single-line field value like "LABEL: value" from a text block '''
 

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from rich.console import Console
 from rich.panel import Panel
-import json
 
 CONSOLE = Console()
 
@@ -12,36 +11,65 @@ class Model:
     api_key: str | None = "NONE"
     data_sharing: str | None = "LOCAL"  # default value for data sharing
 
+@dataclass
+class FlashCard:
+    id: int
+    title: str
+    front: str
+    back: str
+    favorite: int
+    created_at: str
+
+@dataclass
+class QuizQuestion:
+    id: int
+    question: str
+    option1: str
+    option2: str
+    option3: str
+    option4: str
+    correct_answer: str
+    explanation: str
+
+@dataclass
+class Quiz:
+    id: int
+    title: str
+    favorite: int
+    created_at: str
+    questions: list[QuizQuestion]
+
 
 # ------------------------ PRINT FORMATATIONS ------------------------
-def format_card_print(front: str, back: str, title: str) -> str:
+def format_card_print(card: FlashCard) -> str:
     """ formats the print output to give the flashcards info """
 
     print()
     CONSOLE.print(      # displays the summary in a panel
         Panel(
-            f"[cyan]Front: [/cyan]{front}\n\n"
-            f"[cyan]Back: [/cyan]{back}",
+            f"[cyan]Front: [/cyan]{card.front}\n\n"
+            f"[cyan]Back: [/cyan]{card.back}",
             border_style = "cyan", 
-            title = f"{title}",
+            title = f"{card.title}",
         )
     )
 
 
-def format_quiz_print(question: str, opt: list, c_answer: str, explanation: str, title: str) -> str:
+def format_quiz_print(quiz: Quiz) -> str:
     """ formats the print output to give the quizzes info """
 
-
-    opt_text = "\n".join(f"{i+1}. {o}" for i, o in enumerate(opt))
+    quiz_question = quiz.questions  # uses a list[QuizQuestion]
     print()
+    opt_text = f"{quiz_question.option1}\n{quiz_question.option2}\n{quiz_question.option3}\n{quiz_question.option4}"
+    
     CONSOLE.print(      # displays the summary in a panel
         Panel(
-            f"[cyan]Q: [/cyan]{question}\n"
+            f"[cyan]Q: [/cyan]{quiz_question.question}\n"
             f"{opt_text}\n\n\n\n"
-            f"[cyan]A: [/cyan]{c_answer}\n"
-            f"[cyan]Exp: [/cyan]{explanation}",
+            f"[cyan]A: [/cyan]{quiz_question.correct_answer}\n"
+            f"[cyan]Exp: [/cyan]{quiz_question.explanation}",
             border_style = "cyan", 
-            title = f"{title}",
+            title = f"{quiz.title}",
         )
     )
 

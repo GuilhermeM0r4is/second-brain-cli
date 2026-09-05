@@ -11,6 +11,7 @@ venv/
 Storage/data.json
 Storage/storage.json
 Storage/generated.json
+Storage/sbrain.db
 
 # IDE files
 .vscode/

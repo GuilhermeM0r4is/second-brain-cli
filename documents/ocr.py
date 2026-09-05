@@ -3,7 +3,7 @@ import re
 from PIL import Image
 from pathlib import Path
 from rich.panel import Panel
-from Material.config import CONSOLE
+from material.config import CONSOLE
 
 
 def is_available() -> bool:

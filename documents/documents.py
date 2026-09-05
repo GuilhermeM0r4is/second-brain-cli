@@ -1,11 +1,11 @@
 from pathlib import Path
-from Material.config import FAVORITE_FALSE, FAVORITE_TRUE, CONSOLE
-from Material.material import create_note
-from Documents.text import import_text
-from Documents.pdf import import_pdf
-from Documents.pptx import import_pptx
-from Documents.ocr import is_available, check_ocr_languages
-from Storage.storage import load_storage, save_storage
+from material.config import FAVORITE_FALSE, FAVORITE_TRUE, CONSOLE
+from material.material import create_note
+from documents.text import import_text
+from documents.pdf import import_pdf
+from documents.pptx import import_pptx
+from documents.ocr import is_available, check_ocr_languages
+from storage.storage import update_settings, load_settings
 
 
 IMPORTERS = {
@@ -36,11 +36,9 @@ def config_dpi(value: int) -> None:
     if not 76 <= value <= 600: 
         return CONSOLE.print(f"[red]import_config: Invalid dpi value, keep between 76-600.[/red]")
 
-    storage = load_storage("import")
-    storage["dpi"] = value
+    update_settings(dpi = value)
 
-    CONSOLE.print(f"[green]import_config: Storage updated, dpi -> {value}[/green]")
-    return save_storage("import", storage)
+    return CONSOLE.print(f"[green]import_config: Storage updated, dpi -> {value}[/green]")
 
 
 def config_lang(language: str) -> None:
@@ -52,15 +50,12 @@ def config_lang(language: str) -> None:
     if not check_ocr_languages(language):
         return CONSOLE.print(f"[red]import_config: Language(s) not installed in tesseract[/red]")
 
-    storage = load_storage("import")
-    storage["language"] = language
+    update_settings(language = language)
 
-    CONSOLE.print(f"[green]import_config: Storage updated new {language}[/green]")
-    return save_storage("import", storage)
+    return CONSOLE.print(f"[green]import_config: Storage updated new {language}[/green]")
 
 
-
-def import_documents(actn: list, siz_action: int) -> str:
+def import_documents(actn: list, siz_action: int, dpi: int, language: str) -> str:
     ''' imports all type of documents into functions '''
 
     if siz_action > 3 or not actn:
@@ -76,8 +71,6 @@ def import_documents(actn: list, siz_action: int) -> str:
     if extension not in IMPORTERS:
         return CONSOLE.print(f"[red]import_documents: Unsupported file type: {extension}[/red]")
 
-    data = load_storage("import")
-    dpi = data["dpi"]; language = data["language"]
 
     document = IMPORTERS[extension](path, dpi, language)
     if document is None: return CONSOLE.print(f"[red]import_documents: Document Invalid[/red]")
@@ -94,10 +87,12 @@ def importing(actn: list, siz_action: int) -> None:
     if not actn:
         return CONSOLE.print(f"[red]import_documents: Invalid usage[/red]")
 
+    data = load_settings()
+    dpi = data["dpi"]; language = data["language"]
+
     if actn[0] == "-config":
         if siz_action != 1: return CONSOLE.print(f"[red]import_config: Usage: i -config[/red]")
 
-        data = load_storage("import")
         return CONSOLE.print(f"[green]import_config: {data}[/green]")
 
     elif actn[0] == "-dpi":
@@ -114,4 +109,4 @@ def importing(actn: list, siz_action: int) -> None:
             return CONSOLE.print(f"[red]import_config: Usage: i -lang | <language>[/red]")
         return config_lang(actn[1])
 
-    import_documents(actn, siz_action)
+    import_documents(actn, siz_action, dpi, language)

@@ -1,6 +1,6 @@
-from Material.config import CONSOLE
+from material.config import CONSOLE
 from pathlib import Path
-from Documents.model import Document
+from documents.model import Document
 
 
 def import_text(path: Path, dpi: int, language: str) -> Document | None:

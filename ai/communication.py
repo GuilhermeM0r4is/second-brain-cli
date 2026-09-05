@@ -1,5 +1,5 @@
-from AI.model import Model
-from Material.config import CONSOLE
+from ai.model import Model
+from material.config import CONSOLE
 
 def ask_ollama(prompt: str, model: Model, max_tokens: int) -> str | None:
     ''' function that sends a prompt to the Ollama model and returns the response '''

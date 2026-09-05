@@ -1,12 +1,15 @@
-from Material.config import SEPARATOR
-from Material.ui import CONSOLE
-from Material.material import (create_note, note_update, list_info, find_info, 
+from material.config import SEPARATOR
+from material.ui import CONSOLE
+from material.material import (create_note, update_info, list_info, find_info, 
                                  delete_info, notes_stats, help)
-from AI.ai import ai_tools
-from Documents.documents import importing
+from ai.ai import ai_tools
+from documents.documents import importing
+from storage.db import init_db
 
 def main():
     ''' main function that keeps the program running all the time '''
+
+    init_db()   # creates the tables on startup
 
     while True:
         ''' infinite cycle that allows the user to do all the different tasks '''
@@ -23,7 +26,7 @@ def main():
                 "l": lambda: list_info(actn[0]),
                 "f": lambda: find_info(actn),
                 "d": lambda: delete_info(actn),
-                "u": lambda: note_update(actn, len(actn)),
+                "u": lambda: update_info(actn, len(actn)),
                 "s": lambda: notes_stats(),
                 "a": lambda: ai_tools(actn, len(actn)),
                 "i": lambda: importing(actn, len(actn)),
@@ -31,8 +34,9 @@ def main():
                 }
 
         if cmd in d_optn: 
-            try: d_optn[cmd]()     # chooses the option from the dict
-            except Exception as e: CONSOLE.print(f"[red]SBRAIN: {e}[/red]")
+            #try: 
+            d_optn[cmd]()     # chooses the option from the dict
+            #except Exception as e: CONSOLE.print(f"[red]SBRAIN: {e}[/red]")
       
         elif cmd == "0": break
         else: CONSOLE.print("[blue]SBRAIN: [red]Invalid choice, use 'h' for help[/red]")

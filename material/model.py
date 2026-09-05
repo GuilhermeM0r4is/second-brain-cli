@@ -1,6 +1,6 @@
 from datetime import datetime   # imports the datetime module to work with date and time
-from Material.config import CONSOLE
-from Material.config import NOTE_ID_PREFIX, FAVORITE_FALSE, FAVORITE_TRUE
+from material.config import CONSOLE
+from material.config import FAVORITE_FALSE, FAVORITE_TRUE
 from dataclasses import dataclass
 from rich.panel import Panel
 
@@ -18,22 +18,7 @@ class Note:     # make it more readable
             self.created_at = datetime.now().isoformat()    
 
 
-def generate_note_id(notes: list[Note]) -> str:
-    ''' generates a new note_id from the notes array '''
-
-    if len(notes) == 0: return NOTE_ID_PREFIX + "0001"
-
-    # gets the last note from the array -> and its number ID "N0001"
-    last_id = notes[-1].id
-
-    # gets the int value from the string and sums + 1 
-    value = int(last_id[1:]) + 1 
-
-    # returns the f-string value
-    return f"{NOTE_ID_PREFIX}{value:04d}"
-
-
-def note_info(action: list, siz_action: int) -> tuple[str, str] | None:
+def note_tag_fvr(action: list, siz_action: int) -> tuple[str, str] | None:
     ''' takes the action and turns it into the tags and fvr info '''
 
     tags = ""; fvr = FAVORITE_FALSE
@@ -54,6 +39,7 @@ def note_info(action: list, siz_action: int) -> tuple[str, str] | None:
 def note_format_print(note: Note) -> None:
     ''' prints the note in the determined format '''
 
+    print()
     CONSOLE.print(Panel(
         f"[cyan]Id:[/cyan] {note.id}\n"
         f"[cyan]Content:[/cyan] {note.content}\n"

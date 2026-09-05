@@ -1,8 +1,5 @@
-import json
-import re
-
-from AI.communication import ask_ai
-from AI.model import Model, CONSOLE
+from ai.communication import ask_ai
+from ai.model import Model, CONSOLE
 
 def ask_with_retry(prompt: str, model: Model, max_tokens: int) -> str | None:
     """ Sends a prompt to the AI model and retries if it fails."""
@@ -40,7 +37,7 @@ def ensure_model(model: Model) -> bool:
     return True
 
 
-def ask_parsed_with_retry(prompt: str, model: Model, parser, max_tokens: int):
+def ask_parsed_with_retry(prompt: str, model: Model, parser, max_tokens: int) -> str:
     """ asks the model for plain text output and retries if parsing fails. """
 
     current_prompt = prompt
