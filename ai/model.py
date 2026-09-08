@@ -41,7 +41,7 @@ class Quiz:
 
 
 # ------------------------ PRINT FORMATATIONS ------------------------
-def format_card_print(card: FlashCard) -> str:
+def format_card_print(card: FlashCard) -> None:
     """ formats the print output to give the flashcards info """
 
     print()
@@ -55,7 +55,7 @@ def format_card_print(card: FlashCard) -> str:
     )
 
 
-def format_quiz_print(quiz: Quiz) -> str:
+def format_quiz_print(quiz: Quiz) -> None:
     """ formats the print output to give the quizzes info """
 
     quiz_question = quiz.questions  # uses a list[QuizQuestion]
@@ -128,7 +128,7 @@ def get_sumchunk_prompt(title: str, content: str, math_heavy: bool = False) -> s
 
 def get_synthesis_prompt(title: str, summaries: list[dict]) -> str:
     sections = []
-    for index, summary in enumerate(summaries, start=1):
+    for index, summary in enumerate(summaries, start = 1):
         sections.append(f"""SECTION {index} Summary: {summary["summary"]} Key points:
                         {chr(10).join(f"- {point}" for point in summary["key_points"])}""")
 

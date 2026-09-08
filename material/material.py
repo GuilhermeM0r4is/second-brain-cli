@@ -2,7 +2,7 @@ from material.config import HELP_COMMAND, FAVORITE_TRUE
 from material.model import Note, note_tag_fvr, note_format_print
 from material.ui import print_header, CONSOLE
 from ai.model import format_quiz_print, format_card_print, FlashCard, Quiz
-from storage.storage import (add_note, load_notes, load_flashcards, load_quizzes, find_note,
+from storage.storage import (add_note, find_notes_by_tag, load_notes, load_flashcards, load_quizzes, find_note,
                             find_flashcard, load_quiz, delete_note, delete_flashcard, delete_quiz,
                             update_note, update_flashcard, update_quiz, get_connection)
 
@@ -15,13 +15,9 @@ def create_note(actn: list, siz_action: int) -> None:
 
     # gets the info from the input
     title = actn[0]; content = actn[1]
-    note_information = note_tag_fvr(actn, siz_action)
-        
-    # assures the information was not a failed error
-    if note_information is None: return CONSOLE.print("[red]create_note: Use 0 or 1 for favorite option[/red]")
-    tags, fvr = note_information
+    tags, fvr = note_tag_fvr(actn, siz_action)
     
-    note = Note(id = "random_bullshit_fix", title = title, content = content, tags = tags, favorite = fvr)
+    note = Note(id = None, title = title, content = content, tags = tags, favorite = fvr)
 
     # adds and saves the note into the database
     add_note(note)
@@ -57,6 +53,15 @@ def find_info(info: str) -> None:
     kind = info[0]; query = info[1]
 
     if kind == "notes":    # searches for a note that matches the requirements
+        if query[0] == "-":
+
+            tag_name = query[1:]
+            results = find_notes_by_tag(tag_name)
+            if not results: return CONSOLE.print(f"[red]find_info: No notes found with tag '{tag_name}'[/red]")
+
+            for note in results: note_format_print(note)
+            return
+
         result = find_note(query)
         if isinstance(result, Note): return note_format_print(result)
 
@@ -117,7 +122,7 @@ def update_info(actn: list, siz_action: int) -> None:
         if note_information is None: return CONSOLE.print("[red]create_note: Use 0 or 1 for favorite option[/red]")
         tags, fvr = note_information
 
-        update_note(query, actn[2], actn[3], fvr)
+        update_note(query, actn[2], actn[3], tags, fvr)
         return CONSOLE.print("[green]update_info: Note updated successfuly[/green]")
 
     elif kind == "cards":

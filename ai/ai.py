@@ -3,7 +3,7 @@ from ai.config import change_config, reset_config, sum_note, flashcards, quiz, a
 from ai.model import Model, CONSOLE
 
 
-def ai_tools(actn: list, siz_action: int) -> str | Model:
+def ai_tools(actn: list, siz_action: int) -> None:
     ''' function that uses and executes all ai related commands '''
 
     data = load_settings()

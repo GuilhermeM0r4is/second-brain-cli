@@ -34,9 +34,9 @@ def main():
                 }
 
         if cmd in d_optn: 
-            #try: 
-            d_optn[cmd]()     # chooses the option from the dict
-            #except Exception as e: CONSOLE.print(f"[red]SBRAIN: {e}[/red]")
+            try: 
+                d_optn[cmd]()     # chooses the option from the dict
+            except Exception as e: CONSOLE.print(f"[red]SBRAIN: {e}[/red]")
       
         elif cmd == "0": break
         else: CONSOLE.print("[blue]SBRAIN: [red]Invalid choice, use 'h' for help[/red]")

@@ -6,7 +6,7 @@ from rich.panel import Panel
 
 @dataclass      # Uses the note dataclass to
 class Note:     # make it more readable
-    id: str
+    id: str | None
     title: str
     content: str
     tags: str
@@ -31,7 +31,7 @@ def note_tag_fvr(action: list, siz_action: int) -> tuple[str, str] | None:
         if action[3] in (FAVORITE_FALSE, FAVORITE_TRUE):
             fvr = action[3]
 
-        else: return None   # makes it so only 0 or 1 can be used to favorite
+        else: fvr = FAVORITE_FALSE   # makes it so only 0 or 1 can be used to favorite
 
     return tags, fvr
 

@@ -8,8 +8,7 @@ from storage.storage import find_note, update_settings, add_flashcard, add_quiz
 import re
 
 MATH_DENSITY_THRESHOLD = 0.02
-SUMMARY_LIMIT = 12000
-MAX_CHARS = 5000
+MAX_CHARS = 7000
 
 
 def helper_note_restrictions(actn: str, model: Model) -> Note | None:
@@ -86,12 +85,6 @@ MATH_SYMBOL_PATTERN = re.compile(
 MATH_STRUCTURAL_PATTERN = re.compile(
     r'\bR\d\b|\bR[nm]\b|\b[a-zA-Z]\d\b|\b\d[a-zA-Z]\b|f\([a-zA-Z],\s*[a-zA-Z]\)|D[a-zA-Z]?f\(|∀|∃')
 
-MATH_KEYWORDS = [
-    "derivative", "differential", "gradient", "jacobian", "matrix", "vector",   # English
-    "theorem", "equation", "integral", "differentiable", "partial derivative",
-    "derivada", "diferencial", "gradiente", "jacobiana", "matriz", "vetor",     # Portuguese (just to try out)
-    "teorema", "equação", "integral", "diferenciável", "derivada parcial"]
-
 
 def math_density(content: str) -> float:
     """ estimates how math-heavy a note is, combining symbol/structural markers and topic keywords """
@@ -103,10 +96,7 @@ def math_density(content: str) -> float:
     symbol_hits = len(MATH_SYMBOL_PATTERN.findall(content))
     structural_hits = len(MATH_STRUCTURAL_PATTERN.findall(content))
 
-    lowered = content.lower()
-    keyword_hits = sum(lowered.count(kw) for kw in MATH_KEYWORDS)
-
-    total_hits = symbol_hits + structural_hits + (keyword_hits * 2)  # weight keywords a bit heavier
+    total_hits = (symbol_hits * 2) + structural_hits
     return total_hits / word_count
 
 
@@ -122,45 +112,45 @@ def is_math_heavy(content: str) -> bool:
 
     return False
 
-def summarize_chunk(title: str, content: str, model: Model, math_heavy: bool) -> dict:
+def summarize_chunk(title: str, content: str, model: Model, math_heavy: bool) -> dict | None:
     ''' summarizes a small note chunck and returns the response '''
 
     prompt = get_sumchunk_prompt(title, content, math_heavy)
-    return ask_parsed_with_retry(prompt, model, parse_chunk_summary, max_tokens = 1500) or {}
+    return ask_parsed_with_retry(prompt, model, parse_chunk_summary, max_tokens = 1500) or None
 
 
-def synthesize_summaries(title: str, summaries: list[dict], model: Model) -> dict:
+def synthesize_summaries(title: str, summaries: list[dict], model: Model) -> dict | None:
     ''' synthesizes all note chuncks and returns the finel answer '''
 
     prompt = get_synthesis_prompt(title, summaries)
-    return ask_parsed_with_retry(prompt, model, parse_synthesis, max_tokens = 3000) or {}
+    return ask_parsed_with_retry(prompt, model, parse_synthesis, max_tokens = 3000) or None
 
 
-def summarize_large_note(title: str, content: str, model: Model, math_heavy: bool) -> dict:
+def summarize_large_note(title: str, content: str, model: Model, math_heavy: bool) -> dict | None:
     """ summarizes a large note splitting it into chunks """
 
     chunks = split_note(content)
     summaries = []
 
-    for number, chunk in enumerate(chunks, start=1):
+    for number, chunk in enumerate(chunks, start = 1):
         CONSOLE.print(f"[blue]ai_sum: Analyzing section {number}/{len(chunks)}...[/blue]")
 
         summary = summarize_chunk(title, chunk, model, math_heavy)
         if summary: summaries.append(summary)
 
-    if not summaries: return {}
+    if not summaries: return None
     CONSOLE.print("[blue]ai_sum: Starting to synthesize the summaries[/blue]\n")
+
     return synthesize_summaries(title, summaries, model)
 
 
-def sum_note(actn: list, model: Model) -> str:
+def sum_note(actn: list, model: Model) -> None:
     ''' summarizes a note using the AI model '''
     try:
         result = helper_note_restrictions(actn[0], model)
         if not result: return CONSOLE.print("[red]ai_sum: Note not found[/red]")
 
         heavy = is_math_heavy(result.content)
-
         answer = summarize_large_note(result.title, result.content, model, math_heavy = heavy)
 
         if not answer:
@@ -171,6 +161,7 @@ def sum_note(actn: list, model: Model) -> str:
 
         # carry over the original note's tags, appending "sum" to mark it as a generated summary
         existing_tags = [t.strip() for t in result.tags.split(",") if t.strip()] if result.tags else []
+
         if "sum" not in existing_tags: existing_tags.append("sum")
         tags = ",".join(existing_tags)
 
@@ -181,7 +172,7 @@ def sum_note(actn: list, model: Model) -> str:
 
 
 # ------------------------ FLASHCARD + QUIZ BASED FUNCTIONS ------------------------
-def flashcards(actn: list, model: Model) -> str:
+def flashcards(actn: list, model: Model) -> None:
     ''' creates flashcards from a given note (should use summarized notes) '''
 
     try:
@@ -205,7 +196,7 @@ def flashcards(actn: list, model: Model) -> str:
     except ValueError as e: return CONSOLE.print(f"[red]ai_flashcard: {e}[/red]")
 
 
-def quiz(actn: list, model: Model) -> str:
+def quiz(actn: list, model: Model) -> None:
     ''' creates flashcards from a given note (should use summarized notes) '''
 
     try:
@@ -230,7 +221,7 @@ def quiz(actn: list, model: Model) -> str:
     except ValueError as e: return CONSOLE.print(f"[red]ai_quiz: {e}[/red]")
 
 
-def all_at_once(actn: list, model: Model) -> str:
+def all_at_once(actn: list, model: Model) -> None:
     ''' does all the three generations at once '''
     try:
         sum_note(actn, model)

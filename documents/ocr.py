@@ -8,7 +8,6 @@ from material.config import CONSOLE
 
 def is_available() -> bool:
     """ returns True if Tesseract OCR is installed and accessible """
-
     try:
         pytesseract.get_tesseract_version()
         return True
@@ -16,7 +15,7 @@ def is_available() -> bool:
     except pytesseract.TesseractNotFoundError: return False
 
 
-def ask_ocr_print(path: str, pages) -> str:
+def ask_ocr_print(path: str, pages) -> None:
     ''' prints the console info to ask_ocr function '''
 
     return CONSOLE.print(
@@ -33,7 +32,7 @@ def ask_ocr_print(path: str, pages) -> str:
                     border_style = "blue"))
 
 
-def print_ocr_error(path: str, pages) -> str:
+def print_ocr_error(path: str, pages) -> None:
     ''' prints the error message when ocr missing '''
 
     return CONSOLE.print(
@@ -53,8 +52,8 @@ def print_ocr_error(path: str, pages) -> str:
 
 def ask_ocr(path: Path, pages: int) -> bool:
     """ asks the user whether OCR should be used """
-
     print()
+    
     if is_available():
         ask_ocr_print(path, pages)
         answer = CONSOLE.input("\n[blue]import_documents: Continue with OCR? [y/n]: [/blue]")

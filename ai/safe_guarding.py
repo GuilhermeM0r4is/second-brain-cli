@@ -37,7 +37,7 @@ def ensure_model(model: Model) -> bool:
     return True
 
 
-def ask_parsed_with_retry(prompt: str, model: Model, parser, max_tokens: int) -> str:
+def ask_parsed_with_retry(prompt: str, model: Model, parser, max_tokens: int) -> dict | list[dict] | None:
     """ asks the model for plain text output and retries if parsing fails. """
 
     current_prompt = prompt
@@ -52,9 +52,6 @@ def ask_parsed_with_retry(prompt: str, model: Model, parser, max_tokens: int) ->
 
         if attempt < retries:
             CONSOLE.print(f"[yellow]ai_tools: Invalid output format, retrying ({attempt}/{retries})...[/yellow]")
-            current_prompt = prompt + """
-
-        Your previous response did not follow the required format exactly.
-        Try again. Use the exact labels and markers shown, plain text only. """
-
+            current_prompt = prompt + """ Your previous response did not follow the required format exactly.
+                                          Try again. Use the exact labels and markers shown, plain text only. """
     return None

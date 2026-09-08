@@ -48,13 +48,18 @@ def add_note(note: Note) -> None:
     ''' adds a note to the database '''
 
     with get_connection() as conn:
-        conn.execute(   # inserts a note into the database
+        cursor = conn.execute(   # inserts a note into the database
             "INSERT INTO notes (title, content, favorite, created_at) VALUES (?, ?, ?, ?)",
             (note.title, note.content, note.favorite, note.created_at))
     
         conn.commit()
+        note_id = cursor.lastrowid
 
+    if note.tags:
+        tag_names = note.tags.split(",")
+        set_note_tags(note_id, tag_names)
 
+        
 def load_notes() -> list[Note]:
     ''' loads all notes from the database '''
 
@@ -63,7 +68,8 @@ def load_notes() -> list[Note]:
     conn.close()
 
     return [Note(id=row["id"], title=row["title"], content=row["content"],
-                 tags="", favorite=row["favorite"], created_at=row["created_at"]) for row in rows]
+                 tags=get_tags_for_note(row["id"]), favorite=row["favorite"],
+                 created_at=row["created_at"]) for row in rows]
 
 
 def find_note(identifier: str) -> Note | None:
@@ -74,11 +80,12 @@ def find_note(identifier: str) -> Note | None:
     conn.close()
 
     if row is None: return None
-    return Note(id=row["id"], title=row["title"], content=row["content"],
-                tags="", favorite=row["favorite"], created_at=row["created_at"])
+    return Note(id = row["id"], title = row["title"], content = row["content"],
+                tags = get_tags_for_note(row["id"]), favorite = row["favorite"], 
+                created_at = row["created_at"])
 
 
-def update_note(identifier: str, title: str, content: str, favorite: str) -> None:
+def update_note(identifier: str, title: str, content: str, tags: str, favorite: str) -> None:
     ''' updates a note found by id or title '''
 
     note = find_note(identifier)
@@ -89,6 +96,7 @@ def update_note(identifier: str, title: str, content: str, favorite: str) -> Non
         conn.execute("UPDATE notes SET title = ?, content = ?, favorite = ? WHERE id = ?", (title, content, favorite, note.id))
         conn.commit()
 
+    set_note_tags(note.id, tags.split(",") if tags else [])
 
 def delete_note(identifier: str) -> bool:
     ''' deletes a note found by id or title '''
@@ -101,6 +109,61 @@ def delete_note(identifier: str) -> bool:
         conn.commit()
 
     return True
+
+
+# ------------------- TAGS FUNCTIONS -------------------
+def get_or_create_tag(conn, name: str) -> int:
+    ''' returns the id of a tag, creating it first if it doesn't exist yet '''
+
+    row = conn.execute("SELECT id FROM tags WHERE name = ?", (name,)).fetchone()
+    if row: return row["id"]
+
+    cursor = conn.execute("INSERT INTO tags (name) VALUES (?)", (name,))
+    return cursor.lastrowid     # adds the new tag into the tagbase
+
+
+def set_note_tags(note_id: int, tag_names: list[str]) -> None:
+    ''' replaces a note's tags with exactly the given list '''
+
+    with get_connection() as conn:
+        # clear existing links first, so this always reflects the given list exactly
+        conn.execute("DELETE FROM note_tags WHERE note_id = ?", (note_id,))
+
+        for name in tag_names:
+            name = name.strip()
+            if not name: continue
+
+            tag_id = get_or_create_tag(conn, name)
+            conn.execute("INSERT INTO note_tags (note_id, tag_id) VALUES (?, ?)", (note_id, tag_id))
+
+        conn.commit()
+
+
+def get_tags_for_note(note_id: int) -> str:
+    ''' returns a comma-joined string of tag names for a note '''
+
+    with get_connection() as conn:
+        rows = conn.execute("""SELECT tags.name FROM tags
+                            JOIN note_tags ON tags.id = note_tags.tag_id
+                            WHERE note_tags.note_id = ?
+                            ORDER BY tags.name""", (note_id,)).fetchall()
+
+    return ",".join(row["name"] for row in rows)
+
+
+def find_notes_by_tag(tag_name: str) -> list[Note]:
+    ''' returns all notes that have the given tag '''
+
+    with get_connection() as conn:
+        rows = conn.execute("""SELECT notes.* FROM notes
+                            JOIN note_tags ON notes.id = note_tags.note_id
+                            JOIN tags ON note_tags.tag_id = tags.id
+                            WHERE tags.name = ?
+                            ORDER BY notes.created_at DESC""", (tag_name,)).fetchall()
+
+    return [Note(id = row["id"], title = row["title"], content = row["content"],
+                 tags = get_tags_for_note(row["id"]), favorite = row["favorite"],
+                 created_at = row["created_at"]) for row in rows]
 
 
 # ------------------- FLASHCARDS FUNCTIONS -------------------

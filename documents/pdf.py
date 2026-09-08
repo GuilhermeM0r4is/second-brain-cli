@@ -31,7 +31,7 @@ def get_meaningful_images(page, min_area: float = 0.05):
     return meaningful
 
 
-def import_pdf(path: Path, dpi: int, language: str) -> Document:
+def import_pdf(path: Path, dpi: int, language: str) -> Document | None:
     """ imports a PDF and optionally uses OCR for image-only or unreliable-text pages """
 
     text = []; pages = 0
@@ -56,6 +56,7 @@ def import_pdf(path: Path, dpi: int, language: str) -> Document:
 
             use_ocr = False
             if has_ocr_candidates: use_ocr = ask_ocr(path, pages)
+            print()
 
             for page, page_text, is_usable, images in page_information:
                 if is_usable and not use_ocr:

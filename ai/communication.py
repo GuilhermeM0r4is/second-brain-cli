@@ -7,9 +7,9 @@ def ask_ollama(prompt: str, model: Model, max_tokens: int) -> str | None:
 
     message = [{"role": "user", "content": prompt}]
     options = {"temperature": 0.2,
-                "num_ctx": 4096,       # give it real room — your chunks alone eat ~2300 tokens
+                "num_ctx": 4096,       
                 "num_predict": max_tokens,   # hard cap output length so a stuck/looping generation can't run forever
-                "num_thread": 4}       # try 4, 6, 8 and compare speed/heat tradeoff
+                "num_thread": 4}             # try 4, 6, 8 and compare speed/heat tradeoff
 
     if model.data_sharing == "LOCAL":   # uses local ollama to try to resume the note
         response = ollama.chat(

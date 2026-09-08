@@ -71,6 +71,7 @@ def import_pptx(path: Path, dpi: int, language: str) -> Document | None:
     has_ocr_candidates = any(images and not slide_text for slide_text, images in slide_information)
 
     if has_ocr_candidates: use_ocr = ask_ocr(path, slides)
+    print()
 
     # build the final document content.
     for slide_number, (slide_text, images) in enumerate(slide_information, start = 1):
