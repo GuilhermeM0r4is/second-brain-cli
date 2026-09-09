@@ -573,5 +573,5 @@ The project evolved from a simple command-line note manager into a modular termi
 ---
 
 ## License
-This project is currently developed as a personal open-source project.
-See the repository for the current licensing information.
+This project is licensed under the MIT License.
+See the [LICENSE](LICENSE) file for details.
