@@ -1,38 +1,41 @@
-from ai.model import (Model, get_flashcard_prompt, get_quiz_prompt, get_sumchunk_prompt, get_synthesis_prompt,
-                      format_card_print, format_quiz_print)
-from ai.parsing import parse_chunk_summary, parse_synthesis, parse_flashcards, parse_quiz
-from ai.safe_guarding import ensure_model, ask_parsed_with_retry
-from material.material import create_note
-from material.model import Note, CONSOLE
-from storage.storage import find_note, update_settings, add_flashcard, add_quiz
-import re
+from datetime import datetime
+
+from application.study.model import Model, FlashCard, Quiz, QuizQuestion
+from application.study.formatting import format_card_print, format_quiz_print
+from application.study.prompting import get_flashcard_prompt, get_quiz_prompt, get_sumchunk_prompt, get_synthesis_prompt       
+from application.study.parsing import parse_chunk_summary, parse_synthesis, parse_flashcards, parse_quiz
+from application.study.safe_guarding import ensure_model, ask_parsed_with_retry
+
+from application.material.material import create_note
+from application.material.model import Note
+from application.material.config import CONSOLE
+
+from application.storage.storage import find_note, update_settings, add_flashcard, add_quiz
+
 
 MATH_DENSITY_THRESHOLD = 0.02
-MAX_CHARS = 7000
+MAX_CHARS = 7000    # <--- feel free to change this depending on your needs, 
+                    #      but keep in mind that larger notes will take longer 
+                    #      to process and may hit token limits
 
 
-def helper_note_restrictions(actn: str, model: Model) -> Note | None:
+def helper_note_restrictions(decision: str, model: Model) -> Note | None:
     ''' gets the note and checks all restrictions of functions '''
 
     if not ensure_model(model): return CONSOLE.print("[red]ai_tools: Invalid model[/red]")
-    return find_note(actn)
+    return find_note(decision)
 
 
 # ------------------------ CONFIG BASED FUNCTIONS ------------------------
-def change_config(siz_action: int, model: Model, actn: list) -> None:
+def change_config(decision: list, size: int, model: Model) -> None:
     ''' function that changes the configuration of the AI model '''
 
-    if siz_action == 1: return CONSOLE.print(f"[green]ai_config: {model}[/green]")
-    if siz_action < 2: return CONSOLE.print(f"[red]ai_config: Invalid action[/red]")
-
-    for num in range(1, siz_action):
-
+    for num in range(1, size):
         # if the action is not in the correct format, we skip it
-        if ":" not in actn[num]: return CONSOLE.print(f"[red]ai_config: Invalid action format: {actn[num]}[/red]")
+        if ":" not in decision[num]: return CONSOLE.print(f"[red]ai_config: Invalid action format: {decision[num]}[/red]")
 
-        key, value = actn[num].split(":", 1)     # splits the action into key and value
-        key = key.strip()
-        value = value.strip()
+        key, value = decision[num].split(":", 1)     # splits the action into key and value
+        key = key.strip(); value = value.strip()
 
         if key not in ["provider", "model", "api_key"]: return CONSOLE.print(f"[red]ai_config: Invalid key: {key}[/red]")
 
@@ -77,6 +80,7 @@ def split_note(content: str) -> list[str]:
     if current.strip(): chunks.append(current.strip())
     return chunks
 
+import re
 
 MATH_SYMBOL_PATTERN = re.compile(
     r'[∂∇∫∑√±≤≥≠∈⊂⊆∀∃⇒⇔→↦×÷·∞]|\\frac|\\partial|\\nabla|\\int|\\sum|\\lim|\\sqrt|\\mathbf|\\begin\{')
@@ -144,10 +148,10 @@ def summarize_large_note(title: str, content: str, model: Model, math_heavy: boo
     return synthesize_summaries(title, summaries, model)
 
 
-def sum_note(actn: list, model: Model) -> None:
+def sum_note(decision: list, model: Model) -> None:
     ''' summarizes a note using the AI model '''
     try:
-        result = helper_note_restrictions(actn[0], model)
+        result = helper_note_restrictions(decision[0], model)
         if not result: return CONSOLE.print("[red]ai_sum: Note not found[/red]")
 
         heavy = is_math_heavy(result.content)
@@ -165,67 +169,91 @@ def sum_note(actn: list, model: Model) -> None:
         if "sum" not in existing_tags: existing_tags.append("sum")
         tags = ",".join(existing_tags)
 
-        create_note([answer["title"], answer["summary"], tags, result.favorite], 4)
+        create_note({"title": answer["title"], "content": answer["summary"], "tags": tags, "favorite": result.favorite})
         return CONSOLE.print("\n[green]ai_sum: Note summarized and added to database[/green]")
 
     except ValueError as e: return CONSOLE.print(f"[red]ai_sum: {e}[/red]")
 
 
 # ------------------------ FLASHCARD + QUIZ BASED FUNCTIONS ------------------------
-def flashcards(actn: list, model: Model) -> None:
+def flashcards(decision: list, model: Model) -> None:
     ''' creates flashcards from a given note (should use summarized notes) '''
 
     try:
-        result = helper_note_restrictions(actn[0], model)
-        if not result: return CONSOLE.print("[red]ai_sum: Note not found[/red]")
+        result = helper_note_restrictions(decision[0], model)
+        if not result: return CONSOLE.print("[red]flashcard: Note not found[/red]")
 
         heavy = is_math_heavy(result.content)
 
         prompt = get_flashcard_prompt(result.title, result.content, heavy)
+        CONSOLE.print("[green]flashcard: Starting to generate flashcards[/green]")
+
         cards = ask_parsed_with_retry(prompt, model, parse_flashcards, max_tokens = 2000)
 
         if not cards:
-            return CONSOLE.print("[red]ai_flashcard: AI returned no usable flashcards[/red]")
+            return CONSOLE.print("[red]flashcard: AI returned no usable flashcards[/red]")
 
         for flashcard in cards:
-            format_card_print(flashcard["front"], flashcard["back"], flashcard["title"])
-            add_flashcard(flashcard)
+            card = FlashCard(id=None, title=flashcard["title"], front=flashcard["front"],
+                             back=flashcard["back"], favorite=0,
+                             created_at=datetime.now().isoformat())
+            format_card_print(card)
+            add_flashcard(card)
 
-        return CONSOLE.print(f"\n[green]ai_flashcard: {len(cards)}x Flashcards generated.[/green]")
+        return CONSOLE.print(f"\n[green]flashcard: {len(cards)}x Flashcards generated.[/green]")
 
-    except ValueError as e: return CONSOLE.print(f"[red]ai_flashcard: {e}[/red]")
+    except ValueError as e: return CONSOLE.print(f"[red]flashcard: {e}[/red]")
 
 
-def quiz(actn: list, model: Model) -> None:
-    ''' creates flashcards from a given note (should use summarized notes) '''
+def quiz(decision: list, model: Model) -> None:
+    ''' creates quiz questions from a given note (should use summarized notes) '''
 
     try:
-        result = helper_note_restrictions(actn[0], model)
-        if not result: return CONSOLE.print("[red]ai_sum: Note not found[/red]")
+        result = helper_note_restrictions(decision[0], model)
+        if not result: return CONSOLE.print("[red]quiz: Note not found[/red]")
         
         heavy = is_math_heavy(result.content)
 
         prompt = get_quiz_prompt(result.title, result.content, heavy)
+        CONSOLE.print("[green]quiz: Starting to generate quiz questions[/green]")
+
         questions = ask_parsed_with_retry(prompt, model, parse_quiz, max_tokens = 2000)
 
         if not questions:
-            return CONSOLE.print("[red]ai_quiz: AI returned no usable quiz questions[/red]")
+            return CONSOLE.print("[red]quiz: AI returned no usable quiz questions[/red]")
 
+        quiz_questions = []
         for quest in questions:
-            format_quiz_print(quest["question"], quest["options"], quest["correct_answer"],
-                               quest["explanation"], quest["title"])
-            add_quiz(quest)
 
-        return CONSOLE.print(f"\n[green]ai_quiz: {len(questions)}x Quiz generated.[/green]")
+            quiz_question = QuizQuestion(id = None,
+                question=quest["question"], option1=quest["options"][0],
+                option2=quest["options"][1], option3=quest["options"][2],
+                option4=quest["options"][3], correct_answer=quest["correct_answer"],
+                explanation=quest["explanation"])
 
-    except ValueError as e: return CONSOLE.print(f"[red]ai_quiz: {e}[/red]")
+            quiz_questions.append(quiz_question)
+
+        generated_quiz = Quiz(
+            id = None, title = result.title, favorite = 0,
+            created_at = datetime.now().isoformat(), questions = quiz_questions)
+
+        add_quiz(generated_quiz)
+
+        for quest, quiz_question in zip(questions, quiz_questions):
+            format_quiz_print(Quiz(
+                id = generated_quiz.id, title = quest["title"], favorite = 0,
+                created_at = generated_quiz.created_at, questions = [quiz_question]))
+
+        return CONSOLE.print(f"\n[green]quiz: {len(questions)}x Quiz generated.[/green]")
+
+    except ValueError as e: return CONSOLE.print(f"[red]quiz: {e}[/red]")
 
 
-def all_at_once(actn: list, model: Model) -> None:
+def all_at_once(decision: list, model: Model) -> None:
     ''' does all the three generations at once '''
     try:
-        sum_note(actn, model)
-        flashcards(actn, model)
-        quiz(actn, model)
+        sum_note(decision, model)
+        flashcards(decision, model)
+        quiz(decision, model)
     
     except ValueError as e: return CONSOLE.print(f"[red]ai_tools: {e}[/red]")

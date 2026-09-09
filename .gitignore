@@ -8,10 +8,10 @@ venv/
 .env/
 
 # Data files
-storage/data.json
-storage/storage.json
-storage/generated.json
-storage/sbrain.db
+application/storage/data.json
+application/storage/storage.json
+application/storage/generated.json
+application/storage/sbrain.db
 
 # IDE files
 .vscode/

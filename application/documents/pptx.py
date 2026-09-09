@@ -3,9 +3,11 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE
 from io import BytesIO
 from PIL import Image
 from pptx import Presentation
-from documents.model import Document
-from documents.ocr import extract_text, ask_ocr
-from material.config import CONSOLE
+
+from application.documents.model import Document
+from application.documents.ocr import extract_text, ask_ocr
+
+from application.material.config import CONSOLE
 
 
 def extract_slide_text(slide) -> str:

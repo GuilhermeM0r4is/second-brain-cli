@@ -3,7 +3,8 @@ import re
 from PIL import Image
 from pathlib import Path
 from rich.panel import Panel
-from material.config import CONSOLE
+
+from application.material.config import CONSOLE
 
 
 def is_available() -> bool:
@@ -12,7 +13,7 @@ def is_available() -> bool:
         pytesseract.get_tesseract_version()
         return True
 
-    except pytesseract.TesseractNotFoundError: return False
+    except pytesseract.TesserdecisionotFoundError: return False
 
 
 def ask_ocr_print(path: str, pages) -> None:

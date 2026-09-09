@@ -1,5 +1,7 @@
-from ai.communication import ask_ai
-from ai.model import Model, CONSOLE
+from application.study.communication import ask_ai
+from application.study.model import Model
+
+from application.material.config import CONSOLE
 
 def ask_with_retry(prompt: str, model: Model, max_tokens: int) -> str | None:
     """ Sends a prompt to the AI model and retries if it fails."""

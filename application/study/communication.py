@@ -1,5 +1,6 @@
-from ai.model import Model
-from material.config import CONSOLE
+from application.study.model import Model
+
+from application.material.config import CONSOLE
 
 def ask_ollama(prompt: str, model: Model, max_tokens: int) -> str | None:
     ''' function that sends a prompt to the Ollama model and returns the response '''
@@ -7,7 +8,7 @@ def ask_ollama(prompt: str, model: Model, max_tokens: int) -> str | None:
 
     message = [{"role": "user", "content": prompt}]
     options = {"temperature": 0.2,
-                "num_ctx": 4096,       
+                "num_ctx": 6144,       
                 "num_predict": max_tokens,   # hard cap output length so a stuck/looping generation can't run forever
                 "num_thread": 4}             # try 4, 6, 8 and compare speed/heat tradeoff
 
@@ -49,9 +50,10 @@ def ask_anthropic(prompt: str, model: Model) -> str:
 
     from anthropic import Anthropic
     client = Anthropic(api_key = model.api_key)
+
     response = client.messages.create(
         model = model.model,
-        max_tokens = 4096,
+        max_tokens = 6144,
         messages = [
             {
                 "role": "user",
@@ -67,6 +69,7 @@ def ask_gemini(prompt: str, model: Model) -> str:
 
     from google import genai
     client = genai.Client(api_key = model.api_key)
+    
     response = client.models.generate_content(
         model = model.model,
         contents = prompt

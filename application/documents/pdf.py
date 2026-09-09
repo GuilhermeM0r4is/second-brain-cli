@@ -2,9 +2,11 @@ from pathlib import Path
 import pymupdf
 import unicodedata
 from PIL import Image
-from documents.model import Document
-from documents.ocr import extract_text, ask_ocr, looks_garbled, clean_ocr_text
-from material.config import CONSOLE
+
+from application.documents.model import Document
+from application.documents.ocr import extract_text, ask_ocr, looks_garbled, clean_ocr_text
+
+from application.material.config import CONSOLE
 
 
 def render_page(page, dpi: int) -> Image.Image:

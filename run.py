@@ -5,8 +5,8 @@ Run from the root directory: python run.py
 """
 
 if __name__ == "__main__":
-    from material import print_info
-    from material.main import main
+    from application.main import main
+    from ui.header import print_info
     
     print_info()
     main()

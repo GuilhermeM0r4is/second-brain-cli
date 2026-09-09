@@ -1,6 +1,6 @@
-from storage.db import get_connection
-from material.model import Note
-from ai.model import FlashCard, Quiz, QuizQuestion
+from application.storage.db import get_connection
+from application.material.model import Note
+from application.study.model import FlashCard, Quiz, QuizQuestion
 
 
 def resolve_row(conn, table: str, identifier: str) -> dict | None:
@@ -98,6 +98,7 @@ def update_note(identifier: str, title: str, content: str, tags: str, favorite: 
 
     set_note_tags(note.id, tags.split(",") if tags else [])
 
+
 def delete_note(identifier: str) -> bool:
     ''' deletes a note found by id or title '''
 
@@ -105,6 +106,7 @@ def delete_note(identifier: str) -> bool:
     if note is None: return False
 
     with get_connection() as conn:
+        conn.execute("DELETE FROM note_tags WHERE note_id = ?", (note.id,))
         conn.execute("DELETE FROM notes WHERE id = ?", (note.id,))
         conn.commit()
 
@@ -227,7 +229,7 @@ def delete_flashcard(identifier: str) -> bool:
 
 
 # ------------------- QUIZZES FUNCTIONS -------------------
-def add_quiz(quiz: Quiz) -> None:
+def add_quiz(quiz: Quiz) -> int:
     ''' adds a quiz and all its questions to the database '''
 
     with get_connection() as conn:
@@ -236,6 +238,7 @@ def add_quiz(quiz: Quiz) -> None:
                             (quiz.title, quiz.favorite, quiz.created_at))
 
         quiz_id = cursor.lastrowid # gets the id from quiz
+        quiz.id = quiz_id
 
         # build one tuple per question, tagging each with the new quiz_id
         question_rows = [(quiz_id, q.question, q.option1, q.option2, q.option3, q.option4,
@@ -247,6 +250,8 @@ def add_quiz(quiz: Quiz) -> None:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", question_rows)
 
         conn.commit()
+
+    return quiz_id
 
 
 def load_quizzes() -> list[Quiz]:
@@ -265,9 +270,7 @@ def load_quiz(identifier: str) -> Quiz | None:
     with get_connection() as conn:
         quiz_row = resolve_row(conn, "quizzes", identifier)
 
-        if quiz_row is None:
-            conn.close()
-            return None
+        if quiz_row is None: return None
 
         question_rows = conn.execute(
             "SELECT * FROM quiz_questions WHERE quiz_id = ?", (quiz_row["id"],)).fetchall()

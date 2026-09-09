@@ -1,5 +1,6 @@
 # Overall requirements to work
 rich
+prompt-toolkit
 PyMuPDF
 python-pptx
 
