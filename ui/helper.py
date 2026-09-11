@@ -3,22 +3,18 @@ from ui.header import print_header
 HELP_COMMANDS = {"": lambda: print_header(),
 
                 "note": ("\n[green]/note commands[/green]\n\n"
-                         "[cyan]> create[/cyan] title content [tags] [fvr]\n"
+                         "[cyan]> create[/cyan]\n"
                          "[cyan]> list[/cyan]\n"
                          "[cyan]> find[/cyan] (id/title) / tag\n"
                          "[cyan]> delete[/cyan] id/title\n"
                          "[cyan]> update[/cyan] id/title new_title [content] [tags] [fvr]\n"
                          "\n[blue]example_usage: [/blue]/note create"),
 
-                "note create": ("\n[green]/note create: creates a new note[/green]\n\n"
-                                "[cyan]> title: [/cyan]title that describes the note;\n"
-                                "[cyan]> content: [/cyan]text to store in the note;\n"
-                                "[cyan]> tags: [/cyan]optional tags separated according to the command input format;\n"
-                                "[cyan]> fvr: [/cyan]favorite flag: 0 for false or 1 for true.\n"
-                                "\n[blue]usage: [/blue]/note create title_2 how_to_basic cooking 0"),
+                "note create": ("\n[green]/note create: creates a new note[/green]"
+                                "\n[green]Creates a new note using a input based logic[/green]"),
 
-                "note list": ("\n[green]/note list: lists stored material[/green]\n"
-                              "Displays all notes in a table, depending on the width of the interface\n"),
+                "note list": ("\n[green]/note list: lists stored material[/green]"
+                              "\n[green]Displays all notes in a table, depending on the width of the interface[/green]"),
 
                 "note find": ("\n[green]/note find: searches stored material[/green]\n\n"
                               "[cyan]> id/title: [/cyan]find a note by ID or title;\n"
@@ -31,8 +27,7 @@ HELP_COMMANDS = {"": lambda: print_header(),
                                 "\n[blue]usage: [/blue]/note delete really_cool_title"),
 
                 "note update": ("\n[green]/note update: updates stored material[/green]\n\n"
-                                "[cyan]> id/title new_title [content] [tags] [fvr]: [/cyan]update a note;\n"
-                                "\n[blue]usage: [/blue]/note update 9 new_title cool_content tag2 1"),
+                                "\n[green]Updates an existing note using a input based logic[/green]"),
 
                 "stats": ("\n[green]/stats: shows note statistics[/green]\n"
                           "Displays total notes, favorite notes, and the most-used tag."),
@@ -152,6 +147,56 @@ COMMAND_TREE = {
         "help": ("\n[green]/stats: shows note statistics[/green]\n"
                   "Displays total notes, favorite notes, and the most-used tag."),
         "subcommands": {},
+    },
+
+    "help": {
+        "description": "Show command help",
+        "usage": "",
+        "help": "",
+        "subcommands": {
+            "note": {
+                "description": "Show note command help",
+                "usage": "",
+                "help": "",
+                "subcommands": {
+                    "create": {"description": "Show note create help", "usage": "", "help": "", "subcommands": {}},
+                    "list": {"description": "Show note list help", "usage": "", "help": "", "subcommands": {}},
+                    "find": {"description": "Show note find help", "usage": "", "help": "", "subcommands": {}},
+                    "delete": {"description": "Show note delete help", "usage": "", "help": "", "subcommands": {}},
+                    "update": {"description": "Show note update help", "usage": "", "help": "", "subcommands": {}},
+                },
+            },
+            "stats": {
+                "description": "Show statistics help",
+                "usage": "",
+                "help": "",
+                "subcommands": {},
+            },
+            "config": {
+                "description": "Show configuration help",
+                "usage": "",
+                "help": "",
+                "subcommands": {
+                    "dpi": {"description": "Show OCR resolution help", "usage": "", "help": "", "subcommands": {}},
+                    "language": {"description": "Show OCR language help", "usage": "", "help": "", "subcommands": {}},
+                    "ai": {"description": "Show AI configuration help", "usage": "", "help": "", "subcommands": {}},
+                },
+            },
+            "import": {
+                "description": "Show document import help",
+                "usage": "",
+                "help": "",
+                "subcommands": {},
+            },
+            "study": {
+                "description": "Show study command help",
+                "usage": "",
+                "help": "",
+                "subcommands": {
+                    "delete": {"description": "Show study delete help", "usage": "", "help": "", "subcommands": {}},
+                },
+            },
+        },
     },
 
     "config": {

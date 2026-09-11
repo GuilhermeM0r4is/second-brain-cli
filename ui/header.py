@@ -17,11 +17,11 @@ header = """
     [bold blue]SBRAIN COMMANDS[/bold blue]
 
     [green]>[/green] [blue]/note[/blue]
-        [cyan]create[/cyan]  title | content | tags | fvr
+        [cyan]create[/cyan]
         [cyan]list[/cyan]
-        [cyan]find[/cyan]   note_id | title | -tag
-        [cyan]delete[/cyan] note_id | title | -tag
-        [cyan]update[/cyan] note_id | title | new_title | content | tags | fvr
+        [cyan]find[/cyan]   note_id | title | tag <tag>
+        [cyan]delete[/cyan] note_id | title | tag <tag>
+        [cyan]update[/cyan] note_id | title
 
     [green]>[/green] [blue]/stats[/blue]
         Show notes and system statistics

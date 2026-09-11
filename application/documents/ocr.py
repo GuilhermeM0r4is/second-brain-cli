@@ -1,4 +1,3 @@
-import pytesseract
 import re
 from PIL import Image
 from pathlib import Path
@@ -9,6 +8,9 @@ from application.material.config import CONSOLE
 
 def is_available() -> bool:
     """ returns True if Tesseract OCR is installed and accessible """
+
+    import pytesseract
+
     try:
         pytesseract.get_tesseract_version()
         return True
@@ -67,6 +69,7 @@ def ask_ocr(path: Path, pages: int) -> bool:
 
 def extract_text(image: Image.Image, language: str) -> str:
     """ extracts text from an image using Tesseract """
+    import pytesseract
 
     return pytesseract.image_to_string(image, language).strip()
 
@@ -115,6 +118,7 @@ def clean_ocr_text(text: str, min_alpha_ratio: float = 0.4) -> str:
 
 def check_ocr_languages(language: str) -> bool:
     ''' checks if the requested languages are installed in Tesseract '''
+    import pytesseract
     
     installed = pytesseract.get_languages(config="")
     requested = language.split("+")
